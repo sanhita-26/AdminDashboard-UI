@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Users — Simple</title>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0;}
+    body{
+      font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, Arial;
+      background: linear-gradient(180deg,#071033 0%, #071022 100%);
+      color:#e6eef8;
+      min-height:100vh;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:24px;
+    }
+
+    .wrap{
+      width:100%;
+      max-width:720px;
+      background: rgba(255,255,255,0.03);
+      border:1px solid rgba(255,255,255,0.04);
+      border-radius:12px;
+      padding:20px;
+      box-shadow:0 8px 30px rgba(2,6,23,0.6);
+    }
+
+    header{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      margin-bottom:14px;
+    }
+
+    h1{ font-size:18px; }
+    .actions{ display:flex; gap:8px; }
+
+    button{
+      padding:8px 12px;
+      border-radius:10px;
+      border:none;
+      cursor:pointer;
+      font-weight:600;
+      font-size:13px;
+    }
+
+    .primary{ background: linear-gradient(90deg,#7c3aed,#4f46e5); color:white; box-shadow:0 8px 20px rgba(79,70,229,0.14); }
+    .ghost{ background:transparent; color:#cfe1ff; border:1px solid rgba(255,255,255,0.04); }
+
+    .list{
+      margin-top:8px;
+      display:grid;
+      gap:10px;
+    }
+
+    .item{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      padding:12px;
+      border-radius:10px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+      border:1px solid rgba(255,255,255,0.03);
+    }
+
+    .left {
+      display:flex;
+      gap:12px;
+      align-items:center;
+    }
+
+    .avatar{
+      width:44px; height:44px; border-radius:10px;
+      display:flex; align-items:center; justify-content:center;
+      font-weight:700; color:white;
+      background: linear-gradient(90deg,#06b6d4,#3b82f6);
+    }
+
+    .meta { display:flex; flex-direction:column; gap:2px; }
+    .name { font-weight:700; font-size:14px; }
+    .email { font-size:13px; color:#bcd3ff; }
+    .no-data { color:#9fb7ff; padding:12px; text-align:center; }
+
+    @media (max-width:520px){
+      .wrap{ padding:16px; }
+      .avatar{ width:38px;height:38px; font-size:13px;}
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <h1>Registered Users</h1>
+      <div class="actions">
+        <button class="ghost" id="backBtn">Back</button>
+        <button class="primary" id="clearAll">Clear All</button>
+      </div>
+    </header>
+
+    <div class="list" id="userList"></div>
+    <div style="margin-top:12px; font-size:13px; color:#9fb7ff;">Open DevTools → Application → Local Storage to inspect raw data.</div>
+  </div>
+
+  <script>
+    const list = document.getElementById('userList');
+    const backBtn = document.getElementById('backBtn');
+    const clearAll = document.getElementById('clearAll');
+
+    const users = JSON.parse(localStorage.getItem('users')) || [];
+
+    function initials(name){
+      if(!name) return 'U';
+      return name.split(' ').map(s=>s[0]||'').slice(0,2).join('').toUpperCase();
+    }
+
+    if(users.length === 0){
+      list.innerHTML = '<div class="no-data">No users found. Add some from the register page.</div>';
+    } else {
+      users.forEach((u, idx) => {
+        const item = document.createElement('div');
+        item.className = 'item';
+        item.innerHTML = `
+          <div class="left">
+            <div class="avatar">${initials(u.name)}</div>
+            <div class="meta">
+              <div class="name">${u.name || '—'}</div>
+              <div class="email">${u.email || '—'}</div>
+            </div>
+          </div>
+          <div class="right">
+            <button class="ghost" data-idx="${idx}" title="Remove user">Remove</button>
+          </div>
+        `;
+        list.appendChild(item);
+      });
+
+      // remove handlers (event delegation)
+      list.addEventListener('click', (e) => {
+        const btn = e.target.closest('button');
+        if(!btn) return;
+        const i = btn.getAttribute('data-idx');
+        if(i === null) return;
+        if(confirm('Remove this user?')) {
+          users.splice(i,1);
+          localStorage.setItem('users', JSON.stringify(users));
+          location.reload();
+        }
+      });
+    }
+
+    backBtn.addEventListener('click', ()=> location.href = 'register.html');
+    clearAll.addEventListener('click', ()=> {
+      if(confirm('Clear all stored users?')) {
+        localStorage.removeItem('users');
+        location.reload();
+      }
+    });
+  </script>
+</body>
+</html>
